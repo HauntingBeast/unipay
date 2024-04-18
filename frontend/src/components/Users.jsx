@@ -2,18 +2,23 @@ import { useEffect, useState } from "react"
 import { Button } from "./Button"
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useSearchParams } from 'react-router-dom';
 
 
 export const Users = () => {
     // Replace with backend call
     const [users, setUsers] = useState([]);
     const [filter, setFilter] = useState("");
+    const [searchParams] = useSearchParams();
+    const userId = searchParams.get("userId");
 
     useEffect(() => {
-        axios.get("http://localhost:3000/api/v1/user/bulk?filter=" + filter)
+        console.log("here before");
+        axios.get("http://localhost:3000/api/v1/user/about?filter=" + filter)
             .then(response => {
                 setUsers(response.data.user)
             })
+        console.log("here after", users);
     }, [filter])
 
     return <>
@@ -26,12 +31,12 @@ export const Users = () => {
             }} type="text" placeholder="Search users..." className="w-full px-2 py-1 border rounded border-slate-200"></input>
         </div>
         <div>
-            {users.map(user => <User user={user} />)}
+            {users.map(user => <User user={user} userId={userId} />)}
         </div>
     </>
 }
 
-function User({user}) {
+function User({user, userId}) {
     const navigate = useNavigate();
 
     return <div className="flex justify-between">
@@ -50,7 +55,7 @@ function User({user}) {
 
         <div className="flex flex-col justify-center h-ful">
             <Button onClick={(e) => {
-                navigate("/send?id=" + user._id + "&name=" + user.firstName);
+                navigate(`/send?userId=${userId}&id=${user._id}&name=${user.firstName}`);
             }} label={"Send Money"} />
         </div>
     </div>
