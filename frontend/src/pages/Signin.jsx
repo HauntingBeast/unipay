@@ -36,7 +36,7 @@ export const Signin = () => {
           <SubHeading label={"Enter your credentials to access your account"} />
           <InputBox
             onChange={(e) => setUsername(e.target.value)}
-            placeholder="harkirat@gmail.com"
+            placeholder="sahil@iiita.ac.in"
             label={"Email"}
           />
           <InputBox
