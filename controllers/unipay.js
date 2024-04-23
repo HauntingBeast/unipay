@@ -1,7 +1,7 @@
 const zod = require("zod");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose")
-const { User, Account } = require("../models/unipay")
+const { User, Account,Transaction } = require("../models/unipay")
 
 const signupBody = zod.object({
     username: zod.string().email(),
@@ -142,22 +142,50 @@ const update = async (req, res) => {
     })
 }
 
-const about=async (req, res) => {
+// const listOfUsers=async (req, res) => {
+//     console.log("hello");
+//     const filter = req.query.filter || "";
+//     console.log(filter)
+
+//     const users = await User.find({
+//         $or: [{
+//             firstName: {
+//                 "$regex": filter
+//             }
+//         }, {
+//             lastName: {
+//                 "$regex": filter
+//             }
+//         }]
+//     })
+
+//     res.json({
+//         user: users.map(user => ({
+//             username: user.username,
+//             firstName: user.firstName,
+//             lastName: user.lastName,
+//             _id: user._id
+//         }))
+//     })
+// }
+
+const listOfUsers = async (req, res) => {
     console.log("hello");
     const filter = req.query.filter || "";
-    console.log(filter)
+    const userId = req.query.userId || ""; // Get the user ID from query params
+    console.log(filter, userId);
 
     const users = await User.find({
-        $or: [{
-            firstName: {
-                "$regex": filter
-            }
-        }, {
-            lastName: {
-                "$regex": filter
-            }
-        }]
-    })
+        $and: [ // Using $and to combine conditions
+            {
+                $or: [
+                    { firstName: { "$regex": filter } },
+                    { lastName: { "$regex": filter } }
+                ]
+            },
+            { _id: { $ne: userId } } // Exclude the user with the provided user ID
+        ]
+    });
 
     res.json({
         user: users.map(user => ({
@@ -166,8 +194,35 @@ const about=async (req, res) => {
             lastName: user.lastName,
             _id: user._id
         }))
-    })
-}
+    });
+};
+
+
+const about = async (req, res) => {
+    console.log("hello");
+    const filter = req.query.userId;
+    console.log(filter);
+
+    try {
+        const user = await User.findById(filter);
+        console.log(user)
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        res.json({
+            user: {
+                username: user.username,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                _id: user._id
+            }
+        });
+    } catch (error) {
+        console.error("Error fetching user:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+};
 
 const balance=async (req, res) => {
     // console.log("aaya")
@@ -183,48 +238,110 @@ const balance=async (req, res) => {
         balance: account.balance
     })
 }
-const transfer=async (req, res) => {
-    console.log("aaya")
+// const transfer=async (req, res) => {
+//     console.log("aaya")
+//     console.log(req.body);
+//     const session = await mongoose.startSession();
+    
+//     session.startTransaction();
+//     const { amount, to, userId } = req.body;
+//     console.log(amount, to, userId);
+    
+//     // Fetch the accounts within the transaction
+//     const account = await Account.findOne({ userId: userId }).session(session);
+//     console.log(account)
+    
+//     if (!account || account.balance < amount) {
+//         await session.abortTransaction();
+//         return res.status(400).json({
+//             message: "Insufficient balance"
+//         });
+//     }
+
+//     const toAccount = await Account.findOne({ userId: to }).session(session);
+
+//     if (!toAccount) {
+//         await session.abortTransaction();
+//         return res.status(400).json({
+//             message: "Invalid account"
+//         });
+//     }
+//     // const rem= account.balance-amount
+//     // console.log(rem)
+//     // Perform the transfer
+
+//     await Account.updateOne({ userId: userId }, { $inc: { balance:-amount } }).session(session);
+//     await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
+//     // await session.commitTransaction();
+//     // await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
+    
+
+//     // Commit the transaction
+//     await session.commitTransaction();
+//     res.json({
+//         message: "Transfer successful"
+//     });
+// }
+// const transfer = require('./models/Transaction'); // Import the Transaction model
+
+const transfer = async (req, res) => {
+    console.log("aaya");
     console.log(req.body);
     const session = await mongoose.startSession();
-    
+
     session.startTransaction();
     const { amount, to, userId } = req.body;
     console.log(amount, to, userId);
-    
-    // Fetch the accounts within the transaction
-    const account = await Account.findOne({ userId: userId }).session(session);
-    console.log(account)
-    
-    if (!account || account.balance < amount) {
-        await session.abortTransaction();
-        return res.status(400).json({
-            message: "Insufficient balance"
+
+    try {
+        // Fetch the accounts within the transaction
+        const account = await Account.findOne({ userId: userId }).session(session);
+        console.log(account);
+
+        if (!account || account.balance < amount) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                message: "Insufficient balance"
+            });
+        }
+
+        const toAccount = await Account.findOne({ userId: to }).session(session);
+
+        if (!toAccount) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                message: "Invalid account"
+            });
+        }
+
+        // Perform the transfer
+        await Account.updateOne({ userId: userId }, { $inc: { balance: -amount } }).session(session);
+        await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
+
+        // Create a transaction record
+        const transaction = new Transaction({
+            sender: userId,
+            receiver: to,
+            amount: amount
         });
-    }
 
-    const toAccount = await Account.findOne({ userId: to }).session(session);
+        // Save the transaction
+        await transaction.save({ session: session });
 
-    if (!toAccount) {
-        await session.abortTransaction();
-        return res.status(400).json({
-            message: "Invalid account"
+        // Commit the transaction
+        await session.commitTransaction();
+        res.json({
+            message: "Transfer successful"
         });
+    } catch (error) {
+        console.error("Error transferring funds:", error);
+        await session.abortTransaction();
+        res.status(500).json({
+            message: "Internal server error"
+        });
+    } finally {
+        session.endSession();
     }
-    // const rem= account.balance-amount
-    // console.log(rem)
-    // Perform the transfer
+};
 
-    await Account.updateOne({ userId: userId }, { $inc: { balance:-amount } }).session(session);
-    await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
-    // await session.commitTransaction();
-    // await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
-    
-
-    // Commit the transaction
-    await session.commitTransaction();
-    res.json({
-        message: "Transfer successful"
-    });
-}
-module.exports={testing,signup,signin,about,update,auth,balance,transfer}
+module.exports={testing,signup,signin,listOfUsers,update,auth,balance,transfer,about}

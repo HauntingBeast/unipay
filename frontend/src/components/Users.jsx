@@ -14,7 +14,7 @@ export const Users = () => {
 
     useEffect(() => {
         console.log("here before");
-        axios.get("http://localhost:3000/api/v1/user/about?filter=" + filter)
+        axios.get(`http://localhost:3000/api/v1/user/listofUsers?filter=${filter}&userId=${userId}`)
             .then(response => {
                 setUsers(response.data.user)
             })
