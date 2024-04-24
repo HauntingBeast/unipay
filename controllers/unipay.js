@@ -1,22 +1,22 @@
 const zod = require("zod");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose")
-const { User, Account,Transaction } = require("../models/unipay")
+const { User, Account, Transaction } = require("../models/unipay")
 
 const signupBody = zod.object({
     username: zod.string().email(),
-	firstName: zod.string(),
-	lastName: zod.string(),
-	password: zod.string()
+    firstName: zod.string(),
+    lastName: zod.string(),
+    password: zod.string()
 })
 
 const signinBody = zod.object({
     username: zod.string().email(),
-	password: zod.string()
+    password: zod.string()
 })
 
 const updateBody = zod.object({
-	password: zod.string().optional(),
+    password: zod.string().optional(),
     firstName: zod.string().optional(),
     lastName: zod.string().optional(),
 })
@@ -29,22 +29,19 @@ const auth = (req, res, next) => {
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(403).json({});
     }
-    console.log("auth")
 
     const token = authHeader.split(' ')[1];
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
         req.userId = decoded.userId;
-        
         next();
     } catch (err) {
         return res.status(403).json({});
     }
 }
 
-const signup=async (req, res) => {
+const signup = async (req, res) => {
     // console.log(req.body);
     const { success } = signupBody.safeParse(req.body)
     // console.log(success)
@@ -79,7 +76,7 @@ const signup=async (req, res) => {
 
     const token = jwt.sign({
         userId
-    },process.env.JWT_SECRET);
+    }, process.env.JWT_SECRET);
 
     res.json({
         message: "User created successfully",
@@ -87,8 +84,8 @@ const signup=async (req, res) => {
     })
 }
 
-const testing= async(req,res)=>{
-     res.status(200).json({msg :'succefull'})
+const testing = async (req, res) => {
+    res.status(200).json({ msg: 'succefull' })
 }
 
 const signin = async (req, res) => {
@@ -101,7 +98,7 @@ const signin = async (req, res) => {
             message: "Incorrect inputs"
         })
     }
-    
+
     const user = await User.findOne({
         username: req.body.username,
         password: req.body.password
@@ -111,7 +108,7 @@ const signin = async (req, res) => {
         const token = jwt.sign({
             userId: user._id
         }, process.env.JWT_SECRET);
-  
+
         res.json({
             token: token,
             user: user._id
@@ -119,28 +116,42 @@ const signin = async (req, res) => {
         return;
     }
 
-    
+
     res.status(401).json({
         message: "Error while logging in"
     })
 }
 
 const update = async (req, res) => {
-    const { success } = updateBody.safeParse(req.body)
-    if (!success) {
-        res.status(411).json({
-            message: "Error while updating information"
-        })
+    try {
+        // Validate the request body against the schema
+        const { success } = updateBody.safeParse(req.body);
+        if (!success) {
+            return res.status(411).json({ message: "Error while updating information" });
+        }
+
+        // Find the user document in the database
+        let userToUpdate = await User.findById(req.userId);
+        if (!userToUpdate) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Update user fields if they're provided in the request body
+        const { username, password, firstName, lastName } = req.body;
+        if (username) userToUpdate.username = username;
+        if (password) userToUpdate.password = password;
+        if (firstName) userToUpdate.firstName = firstName;
+        if (lastName) userToUpdate.lastName = lastName;
+
+        // Save the updated user document
+        await userToUpdate.save();
+
+        res.json({ message: "Updated successfully", user: userToUpdate });
+    } catch (error) {
+        console.error('Error updating user:', error);
+        res.status(400).json({ message: 'Invalid user data', error });
     }
-
-    await User.updateOne(req.body, {
-        id: req.userId
-    })
-
-    res.json({
-        message: "Updated successfully"
-    })
-}
+};
 
 // const listOfUsers=async (req, res) => {
 //     console.log("hello");
@@ -170,10 +181,10 @@ const update = async (req, res) => {
 // }
 
 const listOfUsers = async (req, res) => {
-    console.log("hello");
+    // console.log("hello");
     const filter = req.query.filter || "";
     const userId = req.query.userId || ""; // Get the user ID from query params
-    console.log(filter, userId);
+    // console.log(filter, userId);
 
     const users = await User.find({
         $and: [ // Using $and to combine conditions
@@ -199,13 +210,16 @@ const listOfUsers = async (req, res) => {
 
 
 const about = async (req, res) => {
-    console.log("hello");
-    const filter = req.query.userId;
-    console.log(filter);
+    const filter = req.params.userId;
+    // console.log(filter);
+    // if(filter==null)
+    // return res.status(500).json({ error: "User id not found" });
+
+    // console.log(filter);
 
     try {
         const user = await User.findById(filter);
-        console.log(user)
+        // console.log(user)
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }
@@ -224,16 +238,13 @@ const about = async (req, res) => {
     }
 };
 
-const balance=async (req, res) => {
+const balance = async (req, res) => {
     // console.log("aaya")
     const userId = req.query.userId;
-    console.log(userId);
     const account = await Account.findOne({
         userId: userId
     });
 
-    console.log(account);
-    
     res.json({
         balance: account.balance
     })
@@ -242,15 +253,15 @@ const balance=async (req, res) => {
 //     console.log("aaya")
 //     console.log(req.body);
 //     const session = await mongoose.startSession();
-    
+
 //     session.startTransaction();
 //     const { amount, to, userId } = req.body;
 //     console.log(amount, to, userId);
-    
+
 //     // Fetch the accounts within the transaction
 //     const account = await Account.findOne({ userId: userId }).session(session);
 //     console.log(account)
-    
+
 //     if (!account || account.balance < amount) {
 //         await session.abortTransaction();
 //         return res.status(400).json({
@@ -274,7 +285,7 @@ const balance=async (req, res) => {
 //     await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
 //     // await session.commitTransaction();
 //     // await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
-    
+
 
 //     // Commit the transaction
 //     await session.commitTransaction();
@@ -285,20 +296,22 @@ const balance=async (req, res) => {
 // const transfer = require('./models/Transaction'); // Import the Transaction model
 
 const transfer = async (req, res) => {
-    console.log("aaya");
-    console.log(req.body);
     const session = await mongoose.startSession();
-
     session.startTransaction();
-    const { amount, to, userId } = req.body;
-    console.log(amount, to, userId);
-
+    const { amount, to } = req.body;
+    // console.log('====================================');
+    // console.log(req.userId);
+    // console.log('====================================');
     try {
         // Fetch the accounts within the transaction
-        const account = await Account.findOne({ userId: userId }).session(session);
-        console.log(account);
-
-        if (!account || account.balance < amount) {
+        const account = await Account.findOne({ userId: req.userId }).session(session);
+        if (amount <= 0) {
+            await session.abortTransaction();
+            return res.status(400).json({
+                message: "Invalid Amount"
+            });
+        }
+        if (account.balance < amount) {
             await session.abortTransaction();
             return res.status(400).json({
                 message: "Insufficient balance"
@@ -315,12 +328,12 @@ const transfer = async (req, res) => {
         }
 
         // Perform the transfer
-        await Account.updateOne({ userId: userId }, { $inc: { balance: -amount } }).session(session);
+        await Account.updateOne({ userId: req.userId }, { $inc: { balance: -amount } }).session(session);
         await Account.updateOne({ userId: to }, { $inc: { balance: amount } }).session(session);
 
         // Create a transaction record
         const transaction = new Transaction({
-            sender: userId,
+            sender: req.userId,
             receiver: to,
             amount: amount
         });
@@ -344,4 +357,30 @@ const transfer = async (req, res) => {
     }
 };
 
-module.exports={testing,signup,signin,listOfUsers,update,auth,balance,transfer,about}
+// Lord Kedia ka code
+const transactions = async (req, res) => {
+    const userId = req.params.userId;
+    if (userId == undefined) {
+        return res.status(400).json({ error: "Unauthorized, Please Signin" });  
+    }
+
+    try {
+        // Find transactions where the sender is the specified user ID
+        const userTransactions = await Transaction.find({
+            sender: userId
+        }).populate('receiver', 'firstName lastName');
+
+        res.json({
+            transactions: userTransactions.map(transaction => ({
+                receiver: transaction.receiver,
+                amount: transaction.amount,
+                timestamp: transaction.timestamp
+            }))
+        });
+    } catch (error) {
+        console.error("Error fetching transactions:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+module.exports = { testing, signup, signin, listOfUsers, update, auth, balance, transfer, about, transactions }

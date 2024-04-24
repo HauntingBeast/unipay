@@ -20,7 +20,7 @@ export const Signin = () => {
       });
       // Assuming the response contains a token for authentication
       localStorage.setItem("token", response.data.token);
-      console.log(response.data.user);
+      localStorage.setItem("userId", response.data.user);
       navigate(`/dashboard?userId=${response.data.user}`);
     } catch (error) {
       console.error("Error signing in:", error);

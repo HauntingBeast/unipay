@@ -1,6 +1,6 @@
 const express =require('express')
 const router=express.Router()
-const {testing,signup,signin,about,update,auth,balance,transfer,listOfUsers}=require('../controllers/unipay')
+const {testing,signup,signin,about,update,auth,balance,transfer,listOfUsers,transactions}=require('../controllers/unipay')
 
 
 
@@ -10,11 +10,14 @@ router.route('/user/signin').get(testing).post(signin)
 // router.route('/user/getBalance').get(testing) (ahref)
 router.route('/user/update').get(testing).put(auth,update)
 router.route('/user/listOfUsers').get(listOfUsers)
-router.route('/user/about').get(about)
+router.route('/user/about/:userId').get(about)
 // router.route('/user/transfer').get(testing) (ahref)
 // router.route('/user/notification').get(testing) (aws)
 router.route('/account/balance').get(balance)
-router.route('/account/transfer').post(transfer)
+router.route('/account/transfer').post(auth,transfer)
+
+// Transactions
+router.route('/user/transactions/:userId').get(transactions);
 
 module.exports=router
 
