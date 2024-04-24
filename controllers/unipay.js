@@ -372,6 +372,7 @@ const transactions = async (req, res) => {
 
         res.json({
             transactions: userTransactions.map(transaction => ({
+                sender:transaction.sender,
                 receiver: transaction.receiver,
                 amount: transaction.amount,
                 timestamp: transaction.timestamp

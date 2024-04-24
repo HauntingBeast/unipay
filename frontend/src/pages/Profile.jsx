@@ -6,6 +6,7 @@ export const Profile = () => {
   const [user, setUser] = useState(null);
   const [balance, setBalance] = useState(null);
   const [transactions, setTransactions] = useState([]);
+  const [s,sets]=useState(null);
   const [firstName, setFirstName] = useState(""); // Changed from name to firstName
   const [lastName, setLastName] = useState(""); // Changed from email to lastName
   const [email, setEmail] = useState("");
@@ -27,8 +28,12 @@ export const Profile = () => {
     axios
       .get("http://localhost:3000/api/v1/user/transactions/" + userId)
       .then((response) => {
-          console.log("Transactions:", response.data);
-          setTransactions(response.data);
+        // console.log("Transactions:", response.data);
+        if(response.data!=null){
+        // sets(response.data[0]);
+        setTransactions(response.data.transactions);
+        console.log(response.data.transactions[0]);
+        }
       })
       .catch((error) => {
         console.error("Error fetching transactions:", error);
@@ -167,40 +172,65 @@ export const Profile = () => {
           ))}
       </div> */}
       <div>
-        {Array.isArray(transactions) && transactions.length > 0 ? (
           <div>
-            {transactions.map((t) => (
+            {transactions.map((t,index) => (
               <Transaction
-                key={t.id} // Make sure each Transaction component has a unique key
+                key={index} // Make sure each Transaction component has a unique key
+                sender={t.sender}
                 receiver={t.receiver.firstName}
                 amount={t.amount}
                 time={t.timestamp}
               />
             ))}
           </div>
-        ) : (
-          <div>No transactions available</div>
-        )}
+        {/* {transactions[0].sender} */}
       </div>
     </div>
   );
 };
+// function Transaction({ sender, receiver, amount, timestamp }) {
+//   return (
+//     <div className="flex justify-center"> {/* Centering container */}
+//       <div className="rounded-full h-12 w-12 bg-slate-200 flex justify-center mt-1 mr-2">
+//         <div className="flex flex-col justify-center h-full text-xl">
+//           <p>Sender: {sender}</p>
+//           <p>Receiver: {receiver}</p>
+//           <p>Amount: {amount}</p>
+//           <p>Timestamp: {timestamp}</p>
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 
-function Transaction({ receiver, amount, time }) {
+function Transaction({ sender, receiver, amount, time }) {
+  // Parse timestamp to Date object
+  const date = new Date(time);
+
+  // Format date
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  
+  // Format time
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+  const apnaTime = day + "-" + month + "-" + year + " " +hours + ":" +minutes;
+  console.log('====================================');
+  console.log(apnaTime);
+  console.log('====================================');
   return (
-    <div className="flex justify-between">
-      <div className="flex">
-        <div className="rounded-full h-12 w-12 bg-slate-200 flex justify-center mt-1 mr-2">
-          <div className="flex flex-col justify-center h-full text-xl">
-            {receiver[0]}
-          </div>
-        </div>
-        <div className="flex flex-col justify-center h-ful">
-          <div>
-            {amount} {time}
-          </div>
-        </div>
+    <div className="flex justify-center mb-4">
+      <div className="bg-gray-200 rounded-lg p-4 shadow-md w-64">
+        <p className="text-lg font-semibold">Transaction Details</p>
+        <hr className="my-2" />
+        <p><span className="font-semibold">Sender:</span> {sender}</p>
+        <p><span className="font-semibold">Receiver:</span> {receiver}</p>
+        <p><span className="font-semibold">Amount:</span> {amount}</p>
+        <p><span className="font-semibold">Time:</span> {apnaTime}</p>
       </div>
     </div>
   );
 }
+
+
