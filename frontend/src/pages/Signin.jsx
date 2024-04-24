@@ -6,6 +6,8 @@ import { SubHeading } from "../components/SubHeading";
 import { BottomWarning } from "../components/BottomWarning";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const Signin = () => {
   const [username, setUsername] = useState("");
@@ -23,6 +25,7 @@ export const Signin = () => {
       localStorage.setItem("userId", response.data.user);
       navigate(`/dashboard?userId=${response.data.user}`);
     } catch (error) {
+      toast(error.response.data.message);
       console.error("Error signing in:", error);
       // Handle error appropriately (e.g., display error message to user)
     }
@@ -49,6 +52,7 @@ export const Signin = () => {
             <Button onClick={handleSignIn} label={"Sign in"} />
           </div>
           <BottomWarning label={"Don't have an account?"} buttonText={"Sign up"} to={"/signup"} />
+          <ToastContainer />
         </div>
       </div>
     </div>

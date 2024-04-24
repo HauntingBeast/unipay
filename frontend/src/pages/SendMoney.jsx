@@ -2,6 +2,8 @@ import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const SendMoney = () => {
   const navigate = useNavigate();
@@ -35,7 +37,7 @@ export const SendMoney = () => {
         Authorization: `Bearer ${token}`,
       },
     };
-    await axios.post(
+    const res = await axios.post(
       "http://localhost:3000/api/v1/account/transfer",
       {
         to: id,
@@ -44,7 +46,8 @@ export const SendMoney = () => {
       },
       config
     );
-    navigate(-1);
+    toast(res.data.message);
+    setTimeout(()=>{navigate(-1)},3000)
   };
 
   return (
@@ -96,6 +99,7 @@ export const SendMoney = () => {
               >
                 Initiate Transfer
               </button>
+              <ToastContainer />
             </div>
           </div>
         </div>
