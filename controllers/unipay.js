@@ -1,6 +1,7 @@
 const zod = require("zod");
 const jwt = require("jsonwebtoken");
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
+const qrcode = require('qrcode');
 const { User, Account, Transaction } = require("../models/unipay")
 
 const signupBody = zod.object({
@@ -298,12 +299,18 @@ const balance = async (req, res) => {
 const transfer = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
-    const { amount, to } = req.body;
+    const { amount, to, password } = req.body;
     // console.log('====================================');
     // console.log(req.userId);
     // console.log('====================================');
     try {
         // Fetch the accounts within the transaction
+        const userSendingMoney = await User.findById(req.userId);
+        if (password != userSendingMoney.password) {
+            return res.status(200).json({
+                message: "Wrong Password"
+            });
+        }
         const account = await Account.findOne({ userId: req.userId }).session(session);
         if (amount <= 0) {
             await session.abortTransaction();
@@ -361,7 +368,7 @@ const transfer = async (req, res) => {
 const transactions = async (req, res) => {
     const userId = req.params.userId || "";
     if (!userId) {
-        return res.status(400).json({ error: "Unauthorized, Please Sign in" });  
+        return res.status(400).json({ error: "Unauthorized, Please Sign in" });
     }
     try {
         const userTransactions = await Transaction.find({
@@ -387,4 +394,27 @@ const transactions = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 }
-module.exports = { testing, signup, signin, listOfUsers, update, auth, balance, transfer, about, transactions }
+
+const generateQRCode = async (req, res) => {
+    const dat = { userid: req.params.userId };
+    console.log(dat);
+    const stringData = JSON.stringify(dat);
+
+    try {
+        qrcode.toDataURL(stringData, (err, code) => {
+            if (err) {
+                console.error("Error generating QR code:", err);
+                return res.status(500).send("Error generating QR code");
+            } else {
+                return res.send(code); // Send the QR code as the response
+            }
+        });
+    } catch (error) {
+        console.error("Error generating QR code:", error);
+        return res.status(500).send("Error generating QR code");
+    }
+};
+
+module.exports = generateQRCode;
+
+module.exports = { testing, signup, signin, listOfUsers, update, auth, balance, transfer, about, transactions,generateQRCode }

@@ -10,12 +10,15 @@ export const SendMoney = () => {
   const userId = localStorage.getItem("userId");
   const [userName, setUserName] = useState(null);
   const [amount, setAmount] = useState(0);
+  const [password, setPassword] = useState(null);
 
   useEffect(() => {
     axios
       .get("http://localhost:3000/api/v1/user/about/" + id)
       .then((response) => {
-        setUserName(response.data.user.firstName + " "+ response.data.user.lastName);
+        setUserName(
+          response.data.user.firstName + " " + response.data.user.lastName
+        );
       })
       .catch((error) => {
         console.error("Error fetching user data:", error);
@@ -37,6 +40,7 @@ export const SendMoney = () => {
       {
         to: id,
         amount: amount,
+        password: password
       },
       config
     );
@@ -51,13 +55,13 @@ export const SendMoney = () => {
             <h2 class="text-3xl font-bold text-center">Send Money</h2>
           </div>
           <div class="p-6">
-            <div class="flex items-center space-x-4">
-              <div class="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
-                {/* <span class="text-2xl text-white">{name[0].toUpperCase()}</span> */}
-                <span class="text-2xl text-white">a</span>
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center">
+                {userName ? (
+                  <span className="text-2xl text-white">{userName[0]}</span>
+                ) : null}
               </div>
-              {/* <h3 class="text-2xl font-semibold">{name}</h3> */}
-              <h3 class="text-2xl font-semibold">{userName}</h3>
+              <h3 className="text-2xl font-semibold">{userName}</h3>
             </div>
             <div class="space-y-4">
               <div class="space-y-2">
@@ -75,6 +79,15 @@ export const SendMoney = () => {
                   class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
                   id="amount"
                   placeholder="Enter amount"
+                />
+                <input
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                  }}
+                  type="text"
+                  class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                  id="password"
+                  placeholder="Enter password"
                 />
               </div>
               <button

@@ -1,6 +1,6 @@
 const express =require('express')
 const router=express.Router()
-const {testing,signup,signin,about,update,auth,balance,transfer,listOfUsers,transactions}=require('../controllers/unipay')
+const {testing,signup,signin,about,update,auth,balance,transfer,listOfUsers,transactions,generateQRCode}=require('../controllers/unipay')
 
 
 
@@ -18,6 +18,7 @@ router.route('/account/transfer').post(auth,transfer)
 
 // Transactions
 router.route('/user/transactions/:userId').get(transactions);
+router.route('user/qr/:userId').get(generateQRCode);
 
 module.exports=router
 
