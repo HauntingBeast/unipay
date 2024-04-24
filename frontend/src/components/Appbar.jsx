@@ -20,7 +20,13 @@ export const Appbar = ({ name, initial, userId }) => {
             </div>
           </div>
         </Link>
-        <Button onClick={handleLogout}>Logout</Button>
+        {/* <Button onClick={handleLogout}>Logout</Button> */}
+        <Button
+          onClick={
+            handleLogout
+          }
+          label={"Logout"}
+        />
       </div>
     </div>
   );
