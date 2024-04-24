@@ -1,5 +1,11 @@
-import { Link } from "react-router-dom";
-export const Appbar = ({ name, initial,userId }) => {
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "./Button";
+export const Appbar = ({ name, initial, userId }) => {
+  const navigate = useNavigate();
+  const handleLogout = async () => {
+    localStorage.removeItem("token");
+    navigate("/signin");
+  };
   return (
     <div className="shadow h-14 flex justify-between">
       <div className="flex flex-col justify-center h-full ml-4">
@@ -14,6 +20,7 @@ export const Appbar = ({ name, initial,userId }) => {
             </div>
           </div>
         </Link>
+        <Button onClick={handleLogout}>Logout</Button>
       </div>
     </div>
   );

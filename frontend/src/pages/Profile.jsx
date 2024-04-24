@@ -6,7 +6,7 @@ export const Profile = () => {
   const [user, setUser] = useState(null);
   const [balance, setBalance] = useState(null);
   const [transactions, setTransactions] = useState([]);
-  const [s,sets]=useState(null);
+  const [apnaQr,setApnaQr]=useState("");
   const [firstName, setFirstName] = useState(""); // Changed from name to firstName
   const [lastName, setLastName] = useState(""); // Changed from email to lastName
   const [email, setEmail] = useState("");
@@ -33,6 +33,19 @@ export const Profile = () => {
         // sets(response.data[0]);
         setTransactions(response.data.transactions);
         console.log(response.data.transactions[0]);
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching transactions:", error);
+      });
+      axios
+      .get("http://localhost:3000/api/v1/user/qr/" + userId)
+      .then((response) => {
+        if(response.data!=null){
+        console.log('====================================');
+        console.log(response.data);
+        setApnaQr(response.data);
+        console.log('====================================');
         }
       })
       .catch((error) => {
@@ -89,6 +102,7 @@ export const Profile = () => {
           <h3>User Details</h3>
           <p>Name: {user.firstName + " " + user.lastName}</p>
           <p>Email: {user.username}</p>
+          <img src={apnaQr} alt="QR Code"></img>
           {/* Add more user details as needed */}
         </div>
       )}

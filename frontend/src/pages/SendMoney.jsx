@@ -40,7 +40,7 @@ export const SendMoney = () => {
       {
         to: id,
         amount: amount,
-        password: password
+        password: password,
       },
       config
     );

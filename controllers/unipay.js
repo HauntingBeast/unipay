@@ -396,7 +396,7 @@ const transactions = async (req, res) => {
 }
 
 const generateQRCode = async (req, res) => {
-    const dat = { userid: req.params.userId };
+    const dat = req.params.userId;
     console.log(dat);
     const stringData = JSON.stringify(dat);
 
@@ -417,4 +417,4 @@ const generateQRCode = async (req, res) => {
 
 module.exports = generateQRCode;
 
-module.exports = { testing, signup, signin, listOfUsers, update, auth, balance, transfer, about, transactions,generateQRCode }
+module.exports = { testing, signup, signin, listOfUsers, update, auth, balance, transfer, about, transactions, generateQRCode }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "./Button";
 import axios from "axios";
-import { useNavigate,Link,useSearchParams } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 
 export const Users = () => {
   // Replace with backend call
@@ -18,6 +18,9 @@ export const Users = () => {
       )
       .then((response) => {
         setUsers(response.data.user);
+        console.log("====================================");
+        console.log(response.data.user);
+        console.log("====================================");
       });
     console.log("here after", users);
   }, [filter]);
@@ -37,7 +40,7 @@ export const Users = () => {
       </div>
       <div>
         {users.map((user) => (
-          <User user={user} userId={userId} />
+          <User user={user} userId={user.userId} />
         ))}
       </div>
     </>
@@ -57,7 +60,7 @@ function User({ user, userId }) {
         </div>
         <div className="flex flex-col justify-center h-ful">
           <div>
-            <Link to={`/about?userId=${userId}`}>
+            <Link to={`/about?userId=${user._id}`}>
               {user.firstName} {user.lastName}
             </Link>
           </div>
@@ -67,9 +70,7 @@ function User({ user, userId }) {
       <div className="flex flex-col justify-center h-ful">
         <Button
           onClick={(e) => {
-            navigate(
-              `/send?userId=${userId}&id=${user._id}&name=${user.firstName}`
-            );
+            navigate(`/send?id=${user._id}`);
           }}
           label={"Send Money"}
         />

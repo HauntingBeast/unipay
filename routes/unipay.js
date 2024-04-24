@@ -18,7 +18,7 @@ router.route('/account/transfer').post(auth,transfer)
 
 // Transactions
 router.route('/user/transactions/:userId').get(transactions);
-router.route('user/qr/:userId').get(generateQRCode);
+router.route('/user/qr/:userId').get(generateQRCode);
 
 module.exports=router
 
