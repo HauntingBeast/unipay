@@ -359,21 +359,25 @@ const transfer = async (req, res) => {
 
 // Lord Kedia ka code
 const transactions = async (req, res) => {
-    const userId = req.params.userId;
-    if (userId == undefined) {
-        return res.status(400).json({ error: "Unauthorized, Please Signin" });  
+    const userId = req.params.userId || "";
+    if (!userId) {
+        return res.status(400).json({ error: "Unauthorized, Please Sign in" });  
     }
-
     try {
-        // Find transactions where the sender is the specified user ID
         const userTransactions = await Transaction.find({
-            sender: userId
-        }).populate('receiver', 'firstName lastName');
+            $or: [
+                { sender: userId },
+                { receiver: userId }
+            ]
+        }).populate([
+            { path: 'sender', select: 'firstName lastName' },
+            { path: 'receiver', select: 'firstName lastName' }
+        ]);
 
         res.json({
             transactions: userTransactions.map(transaction => ({
-                sender:transaction.sender,
-                receiver: transaction.receiver,
+                sender: `${transaction.sender.firstName} ${transaction.sender.lastName}`,
+                receiver: `${transaction.receiver.firstName} ${transaction.receiver.lastName}`,
                 amount: transaction.amount,
                 timestamp: transaction.timestamp
             }))
@@ -383,5 +387,4 @@ const transactions = async (req, res) => {
         res.status(500).json({ error: "Internal server error" });
     }
 }
-
 module.exports = { testing, signup, signin, listOfUsers, update, auth, balance, transfer, about, transactions }

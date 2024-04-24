@@ -177,7 +177,7 @@ export const Profile = () => {
               <Transaction
                 key={index} // Make sure each Transaction component has a unique key
                 sender={t.sender}
-                receiver={t.receiver.firstName}
+                receiver={t.receiver}
                 amount={t.amount}
                 time={t.timestamp}
               />
@@ -216,9 +216,6 @@ function Transaction({ sender, receiver, amount, time }) {
   const hours = String(date.getHours()).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
   const apnaTime = day + "-" + month + "-" + year + " " +hours + ":" +minutes;
-  console.log('====================================');
-  console.log(apnaTime);
-  console.log('====================================');
   return (
     <div className="flex justify-center mb-4">
       <div className="bg-gray-200 rounded-lg p-4 shadow-md w-64">
