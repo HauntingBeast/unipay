@@ -23,13 +23,16 @@ export const Signin = () => {
       // Assuming the response contains a token for authentication
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("userId", response.data.user);
-      navigate(`/dashboard?userId=${response.data.user}`);
+      toast.success("Login successful!"); // Add toast for successful login
+      setTimeout(()=>{navigate(`/dashboard?userId=${response.data.user}`);},3000)
+      
     } catch (error) {
-      toast(error.response.data.message);
+      toast.error(error.response.data.message);
       console.error("Error signing in:", error);
       // Handle error appropriately (e.g., display error message to user)
     }
   };
+  
 
   return (
     <div className="bg-slate-300 h-screen flex justify-center">

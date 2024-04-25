@@ -6,6 +6,8 @@ import { InputBox } from "../components/InputBox"
 import { SubHeading } from "../components/SubHeading"
 import axios from "axios";
 import { useNavigate } from "react-router-dom"
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export const Signup = () => {
     const [firstName, setFirstName] = useState("");
@@ -40,10 +42,13 @@ export const Signup = () => {
               password
             });
             localStorage.setItem("token", response.data.token)
-            navigate("/signin")
+            toast.success("Signup Successful!");
+            setTimeout(()=>{navigate("/signin");},3000)
+            
           }} label={"Sign up"} />
         </div>
         <BottomWarning label={"Already have an account?"} buttonText={"Sign in"} to={"/signin"} />
+        <ToastContainer />
       </div>
     </div>
   </div>
